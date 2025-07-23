@@ -1,100 +1,100 @@
-/*
-    Aluno: Lucas Carneiro de Araújo Lima
-*/
-
 #include "ws2812.h"
-
-PIO pio = pio0;
-int sm = 0;
-
-//Frames fixos
-Led_Matrix blank = {
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 0
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 1
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 2
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 3
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}  // Linha 4
-};
-Led_Matrix mid_row = {
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 0
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 1
-    {{0.0, 0.025, 0.0}, {0.0, 0.025, 0.0}, {0.0, 0.025, 0.0}, {0.0, 0.025, 0.0}, {0.0, 0.025, 0.0}}, // Linha 2
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, // Linha 3
-    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}},  // Linha 4
+#include <math.h>
+#include "pico/stdlib.h"
+// Buffer para armazenar quais LEDs estão ligados matriz 5x5
+bool led_buffer[NUM_PIXELS] = {
+    0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0
 };
 
-//Definição da cor escolhida
-uint32_t color(double b, double r, double g) {
-  return (((unsigned char)(g * 255)) << 24) | (((unsigned char)(r * 255)) << 16) | (((unsigned char)(b * 255)) << 8);
+float intensity = 1; // default de 10%
+
+// Matriz de LEDs
+static inline void put_pixel(uint32_t pixel_grb) {
+    pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
 }
 
-//Imprimindo o frame do número na matriz de led
-void printer(Led_Matrix* frame){
-    for (int i = 4; i >= 0; i--){
-        if(i % 2) {
-            for (int j = 0; j < 5; j ++) 
-                pio_sm_put_blocking((PIO)pio, sm, color((*frame)[i][j].blue, (*frame)[i][j].red, (*frame)[i][j].green));
-        }else {
-            for (int j = 4; j >= 0; j --)
-                pio_sm_put_blocking((PIO)pio, sm, color((*frame)[i][j].blue, (*frame)[i][j].red, (*frame)[i][j].green));
+static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint32_t)(r) << 8) | ((uint32_t)(g) << 16) | (uint32_t)(b);
+}
+
+void set_leds(uint8_t r, uint8_t g, uint8_t b) {
+    uint32_t color = urgb_u32(r*intensity, g*intensity, b*intensity);
+    for (int i = 0; i < NUM_PIXELS; i++) {
+        if (led_buffer[i]) {
+            put_pixel(color);
+        }
+        else {
+            put_pixel(0);
         }
     }
 }
 
-//Forma o frame do número
-void framer(Led_Matrix* frame,Led_Matrix* base,float r, float g, float b, int row, int col, bool clear, bool print) {
-    if(clear) memcpy(*frame, *base, sizeof(Led_Matrix));
-    (*frame)[row][col].red = r;
-    (*frame)[row][col].blue = b;
-    (*frame)[row][col].green = g;
-    if(print) printer(frame); 
+void set_led_intensity(int value) {
+    intensity = value / 100.0f;
 }
 
-void symbol(char symbol) {
-    Led_Matrix frame;
-   
-    if(symbol == 'x') {
-        framer(&frame,&blank,0.025,0,0,0,0,true,false);
-        framer(&frame,&blank,0.025,0,0,0,4,false,false);
-        framer(&frame,&blank,0.025,0,0,4,0,false,false);
-        framer(&frame,&blank,0.025,0,0,4,4,false,false);
-        framer(&frame,&blank,0.025,0,0,3,1,false,false);
-        framer(&frame,&blank,0.025,0,0,3,3,false,false);
-        framer(&frame,&blank,0.025,0,0,2,2,false,false);
-        framer(&frame,&blank,0.025,0,0,1,1,false,false);
-        framer(&frame,&blank,0.025,0,0,1,3,false,true);
-    } else if(symbol == 'w') {
-        framer(&frame,&blank,0.025,0.025,0,1,2,true,false);
-        framer(&frame,&blank,0.025,0.025,0,2,1,false,false);
-        framer(&frame,&blank,0.025,0.025,0,2,2,false,false);
-        framer(&frame,&blank,0.025,0.025,0,2,3,false,false);
-        framer(&frame,&blank,0.025,0.025,0,3,0,false,false);
-        framer(&frame,&blank,0.025,0.025,0,3,1,false,false);
-        framer(&frame,&blank,0.025,0.025,0,3,2,false,false);
-        framer(&frame,&blank,0.025,0.025,0,3,3,false,false);
-        framer(&frame,&blank,0.025,0.025,0,3,4,false,true);
-    } else if(symbol == 'v') {
-        framer(&frame,&mid_row,0,0.025,0,0,2,true,false);
-        framer(&frame,&blank,0,0.025,0,1,1,false,false);
-        framer(&frame,&blank,0,0.025,0,1,2,false,false);
-        framer(&frame,&blank,0,0.025,0,1,3,false,false);
-        framer(&frame,&blank,0,0.025,0,3,1,false,false);
-        framer(&frame,&blank,0,0.025,0,3,1,false,false);
-        framer(&frame,&blank,0,0.025,0,3,2,false,false);
-        framer(&frame,&blank,0,0.025,0,3,3,false,false);
-        framer(&frame,&blank,0,0.025,0,4,2,false,true);
+void turn_on_leds() {
+    for(int i = 0; i < 25; i++) {
+        led_buffer[i] = 1;
     }
-    else if(symbol == '*') {
-        framer(&frame,&blank,0,0,0,0,0,true,true);
+}
+void clear_buffer() {
+    for(int i = 0; i < NUM_PIXELS; i++) {
+        led_buffer[i] = 0;
     }
 }
 
-void ws2812_draw_row(float r, float g, float b, int row, bool clear, bool print) {
-    Led_Matrix frame;
+void hsv_to_rgb(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b) {
+    float c = v * s;
+    float x = c * (1 - fabsf(fmodf(h / 60.0f, 2) - 1));
+    float m = v - c;
 
-    framer(&frame,&blank,r,g,b,row,0,clear,false);
-    framer(&frame,&blank,r,g,b,row,1,false,false);
-    framer(&frame,&blank,r,g,b,row,2,false,false);
-    framer(&frame,&blank,r,g,b,row,3,false,false);
-    framer(&frame,&blank,r,g,b,row,4,false,print);
+    float r_, g_, b_;
+
+    if (h < 60) {
+        r_ = c; g_ = x; b_ = 0;
+    } else if (h < 120) {
+        r_ = x; g_ = c; b_ = 0;
+    } else if (h < 180) {
+        r_ = 0; g_ = c; b_ = x;
+    } else if (h < 240) {
+        r_ = 0; g_ = x; b_ = c;
+    } else if (h < 300) {
+        r_ = x; g_ = 0; b_ = c;
+    } else {
+        r_ = c; g_ = 0; b_ = x;
+    }
+
+    *r = (uint8_t)((r_ + m) * 255 * intensity);
+    *g = (uint8_t)((g_ + m) * 255 * intensity);
+    *b = (uint8_t)((b_ + m) * 255 * intensity);
+}
+
+void rainbow_cycle(int delay_ms, int *mode) {
+    const float sat = 1.0f;
+    const float val = 1.0f;
+    float hue = 0;
+    turn_on_leds();  // Liga todos os LEDs
+
+    while (*mode) {
+        for (int i = 0; i < NUM_PIXELS; i++) {
+            float led_hue = fmodf(hue + (360.0f / NUM_PIXELS) * i, 360.0f);
+            uint8_t r, g, b;
+            hsv_to_rgb(led_hue, sat, val, &r, &g, &b);
+            if (led_buffer[i]) {
+                put_pixel(urgb_u32(r, g, b));
+            } else {
+                put_pixel(0);
+            }
+        }
+
+        hue += 3; // velocidade do arco-íris
+        if (hue >= 360.0f) hue -= 360.0f;
+
+        sleep_ms(delay_ms);
+    }
 }

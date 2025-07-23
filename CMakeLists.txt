@@ -47,10 +47,9 @@ add_executable(${PROJECT_NAME}
         lib/source/aht20.c 
         lib/source/bmp280.c 
         lib/source/buzzer.c
-        lib/source/server.c
+        lib/source/data_store.c
         lib/source/ssd1306.c
         lib/source/ws2812.c
-        lib/source/tasks/wifi_task.c
         )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})  # Adiciona o diretório raiz como include privado apenas para o target atual
@@ -77,8 +76,6 @@ target_link_libraries(${PROJECT_NAME}
         hardware_timer
         pico_bootrom
         pico_cyw43_arch_lwip_threadsafe_background
-        FreeRTOS-Kernel 
-        FreeRTOS-Kernel-Heap4
         )
 
 pico_add_extra_outputs(${PROJECT_NAME} )

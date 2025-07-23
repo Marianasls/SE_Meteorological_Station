@@ -1,31 +1,30 @@
-/*
-    Aluno: Lucas Carneiro de Araújo Lima
-*/
+#ifndef LED_MATRIX_H
+#define LED_MATRIX_H
 
-#ifndef WS2812_H
-#define WS2812_H
-
-#include "ws2812.pio.h"
 #include "hardware/pio.h"
-#include <string.h>
 
-#define NUM_PIXELS 25   // 5x5 = 25
-#define IS_RGBW false
-
-extern PIO pio;
-extern int sm;
-
-// Definição de tipo da estrutura que irá controlar a cor dos LED's
+#define NUM_PIXELS 25
 typedef struct {
-    double red;
-    double green;
-    double blue;
-} Color;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    char *name;
+} color_t;
 
-// Definição de tipo da matriz de leds
-typedef Color Led_Matrix[5][5];
+static inline void put_pixel(uint32_t pixel_grb);
 
-void symbol(char symbol);
-void ws2812_draw_row(float r, float g, float b, int row, bool clear, bool print);
+static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b);
+
+void set_leds(uint8_t r, uint8_t g, uint8_t b);
+
+void clear_buffer();
+
+void turn_on_leds();
+
+void set_led_intensity(int value);
+
+void rainbow_cycle(int delay_ms, int *mode);
+
+void hsv_to_rgb(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b);
 
 #endif

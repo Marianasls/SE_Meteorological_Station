@@ -50,7 +50,7 @@ enum Notes {
     A = 4400,  // A
     B = 4950,  // B
     C5 = 5280, // C5 (uma oitava acima)
-    A = 880    // A5 
+    A5 = 880    // A5 
 };
 
 #endif // GLOBALS_H
