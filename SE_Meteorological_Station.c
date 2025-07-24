@@ -540,10 +540,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t er
                            (int)strlen(HTML_BODY), HTML_BODY);
     }
 
-    // CRUCIAL: libere o pbuf ANTES de iniciar o envio da resposta
     pbuf_free(p);
-    
-    // Configurar o callback e argumentos antes de iniciar o envio
     tcp_arg(tpcb, hs);
     tcp_sent(tpcb, http_sent);
     
