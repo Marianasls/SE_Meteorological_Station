@@ -11,8 +11,8 @@ bool wifi_connected;         // Status do Wi-Fi (true/false)
 char ip_address_str[16];     // String para armazenar o endereço IP
 
 // Credenciais WIFI
-#define WIFI_SSID "seu-ssid"  // Substitua pelo SSID da sua rede Wi-Fi
-#define WIFI_PASS "sua-senha" // Substitua pela senha da sua rede Wi-Fi
+#define WIFI_SSID "Turbonetwork-Plantao" // Substitua pelo SSID da sua rede Wi-Fi
+#define WIFI_PASS "08021831"        // Substitua pela senha da sua rede Wi-Fi
 
 #define LED_PIN CYW43_WL_GPIO_LED_PIN   // GPIO do CI CYW43
 
